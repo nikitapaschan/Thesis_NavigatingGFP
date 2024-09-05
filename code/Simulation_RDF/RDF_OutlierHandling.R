@@ -1,4 +1,7 @@
-
+######################################################
+# RDF Outlier handling
+#####################################################
+setwd('/Users/nikitapaschan/Thesis_NavigatingGFP/')
 
 set.seed(123)
 n <- 100
@@ -11,10 +14,9 @@ data_outlier <- data.table(matrix(rcauchy(n * niter, location = 0, scale = 1), n
 data_outlier[, `:=`(g1 = sample(c(rep(0, n/2), rep(1, n/2)), n, replace = FALSE),
                     y = rnorm(n, mean = 0, sd = 1))]
 
-# Initialize result data.table
+# Initialize
 result_outlier <- data.table()
 
-# Helper function to handle outliers and perform tests
 handle_outliers_and_tests <- function(col) {
   # Identify outliers using boxplot method
   out_boxplot <- boxplot.stats(data_outlier[[col]])$out
@@ -131,14 +133,11 @@ for (i in 1:n_chunks) {
 }
 
 
-# View or Analyze the Results
-View(result_outlier)
+# head or Analyze the Results
+head(result_outlier)
 #save as rdata 
-save(result_outlier, file = "/Users/nikitapaschan/Master-Thesis/datasets/result_outlier.RData")
+# save(result_outlier, file = "datasets/result_outlier.RData")
 
-
-load('/Users/nikitapaschan/Master-Thesis/datasets/result_outlier.RData')
-view(result_outlier)
 ####################
 #### maxZ / phacked 
 ######################
@@ -177,35 +176,25 @@ head(phacked_outlier_test)
 
 
 table(phacked_outlier_test$test_name)
-# Reset row names to a simple enumeration
-# rownames(phacked_outlier_test) <- seq_len(nrow(phacked_outlier_test))
 
-# Initialize the vector to store the previous column values
+# Initialize 
 po_outlier_test <- rep(NA, nrow(result_outlier))
 sig_flg_outlier_test <- rep(NA, nrow(result_outlier))
 
 result_outlier <- as.data.frame(result_outlier)
 # Loop through each row of the table
 for (i in 1:nrow(result_outlier)) {
-  # Find the column index of the current value in phacked_outlier_test for current row
   col_index <- which(result_outlier[i, ] == phacked_outlier_test$zo_test[i])
-  
-  # Ensure that the column index is greater than 1
   if (length(col_index) > 0 && col_index[1] > 1) {
     po_outlier_test[i] <- result_outlier[i, col_index[1] + 1]
     sig_flg_outlier_test[i] <- result_outlier[i, col_index[1] + 2]
   }
 }
 
-# Combine results back into a data.table
 phacked_outlier_test <- data.table(phacked_outlier_test, po_outlier_test = po_outlier_test, sig_flg_outlier_test = sig_flg_outlier_test)
 
-# Print the head of the final data.table
 head(phacked_outlier_test)
 head(result_outlier)
-table(phacked_outlier_test$test_name)
-table(phacked_outlier_test$sig_flg_outlier_test)
-
 
 # frequency tables for sig_flg 
 table(result_outlier$sig_ttest_all_5p)/sum(table(result_outlier$sig_ttest_all_5p))
@@ -219,47 +208,38 @@ result_outlier_teststat <- result_outlier_teststat %>%
 
 names(result_outlier_teststat)
 # Correlation matrix between the t test of the different outlier methods
-# Calculate the correlation matrix
 correlation_matrix_outlier <- cor(result_outlier_teststat)
 
-# Create the correlation plot
+# Correlation plot
 cor_matrix_outlier_ttest <- ggcorrplot(
   correlation_matrix_outlier, 
   hc.order = TRUE, 
   type = "lower",
   lab = TRUE,
-  lab_size = 7,  # Increase the size of the text inside the cells
+  lab_size = 7, 
   colors = brewer.pal(n = 3, name = "PRGn")
 ) + 
   ggtitle("Correlations of T-Test Statistics by Outlier Handling Method") +  
   theme(
-    axis.text.x = element_text(size = 18, angle = 45, hjust = 1),  # Increase font size and rotate x-axis labels
-    axis.text.y = element_text(size = 18),  # Increase font size for y-axis labels
-    plot.title = element_text(size = 19, hjust = 0.5, face = 'bold'),  # Increase font size and center the title
-    legend.text = element_text(size = 14),  # Increase font size of the legend text
-    legend.title = element_text(size = 16),  # Increase font size of the legend title
-    plot.margin = margin(10, 10, 10, 10)  # Add some margin around the plot
+    axis.text.x = element_text(size = 18, angle = 45, hjust = 1), 
+    axis.text.y = element_text(size = 18),  
+    plot.title = element_text(size = 19, hjust = 0.5, face = 'bold'),  
+    legend.text = element_text(size = 14),  
+    legend.title = element_text(size = 16),  
+    plot.margin = margin(10, 10, 10, 10)  
   ) 
-######################################################
-# RDF Outlier Handling
-#####################################################
-setwd('/Users/nikitapaschan/Thesis_NavigatingGFP/')
 
-
-# Create the textbox plot
+# Create the text box plot
 textbox_cor_matrix_outlier_ttest <- ggdraw() +
   draw_text("Short names:\nall = no outlier handling\nwinsor = Winsorizing\nmad = Median Absolute Deviation\niqr = Interquartile Range\nrosner = Rosner Test", 
             x = 0.9, y = -0.8, hjust = 0.9, vjust = -1, size = 15)
-
-
-# Combine the correlation plot and the textbox plot
 cor_matrix_outlier_ttest <- plot_grid(cor_matrix_outlier_ttest, textbox_cor_matrix_outlier_ttest, ncol = 1, rel_heights = c(2, 0.5))
 
 cor_matrix_outlier_ttest
 
-ggsave(cor_matrix_outlier_ttest, 
-       file = '/Users/nikitapaschan/Master-Thesis/plots/cor_matrix/cor_matrix_outlier_ttest.pdf', 
-       width = 10, height = 8, units = "in")
+# ggsave(cor_matrix_outlier_ttest, 
+       # file = 'plots/cor_matrix/cor_matrix_outlier_ttest.pdf', 
+       # width = 10, height = 8, units = "in")
 
 
 # adjusted p-value: 
@@ -302,7 +282,7 @@ table(phacked_outlier_test$test_name, phacked_outlier_test$sig_flg_outlier_test)
 ### outlier handling correlation for linear model
 #################################################
 
-# Select the columns with t-test statistics
+# Select the columns with tvalue
 result_outlier_lm <- result_outlier %>%
   select(lm_all, lm_box, lm_winsor
          , lm_mad, lm_rosner, lm_cooks)
@@ -388,17 +368,17 @@ cor_matrix_outlier_lm <- ggcorrplot(
   hc.order = TRUE, 
   type = "lower",
   lab = TRUE,
-  lab_size = 7,  # Increase the size of the text inside the cells
+  lab_size = 7, 
   colors = brewer.pal(n = 3, name = "PRGn")
 ) + 
   ggtitle("Correlations of Regression Coefficients by Outlier Handling Method") +  
   theme(
-    axis.text.x = element_text(size = 18, angle = 45, hjust = 1),  # Increase font size and rotate x-axis labels
-    axis.text.y = element_text(size = 18),  # Increase font size for y-axis labels
-    plot.title = element_text(size = 20, hjust = 0.5, face = 'bold'),  # Increase font size and center the title
-    legend.text = element_text(size = 14),  # Increase font size of the legend text
-    legend.title = element_text(size = 16),  # Increase font size of the legend title
-    plot.margin = margin(10, 10, 10, 10)  # Add some margin around the plot
+    axis.text.x = element_text(size = 18, angle = 45, hjust = 1), 
+    axis.text.y = element_text(size = 18),  
+    plot.title = element_text(size = 20, hjust = 0.5, face = 'bold'),  
+    legend.text = element_text(size = 14),  
+    legend.title = element_text(size = 16),  
+    plot.margin = margin(10, 10, 10, 10)  
   ) 
 
 # Create the textbox plot
@@ -412,9 +392,9 @@ cor_matrix_outlier_lm <- plot_grid(cor_matrix_outlier_lm, textbox_cor_matrix_out
 
 cor_matrix_outlier_lm
 
-ggsave(cor_matrix_outlier_lm, 
-       file = '/Users/nikitapaschan/Master-Thesis/plots/cor_matrix/cor_matrix_outlier_lm.pdf', 
-       width = 10, height = 8, units = "in")
+# ggsave(cor_matrix_outlier_lm, 
+       # file = 'plots/cor_matrix/cor_matrix_outlier_lm.pdf', 
+       # width = 10, height = 8, units = "in")
 
 
 # adjusted p-value: 

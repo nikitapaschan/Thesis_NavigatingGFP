@@ -1,12 +1,12 @@
 ######################################################
 # RDF Data peeking
 #####################################################
-setwd('/Users/nikitapaschan/Thesis_NavigatingGFP/')
+# setwd('/Users/nikitapaschan/Thesis_NavigatingGFP/')
 
 # Define the sample size sequence
 n <- c(20, 30, 40, 50, 100)
 
-# Initialize data frames to store results
+# Initialize 
 data_df <- data.table()
 result_peeking <- data.table()
 
@@ -15,19 +15,16 @@ seeds <- sample(1:100000, 10000, replace = FALSE)
 
 # Set seed for reproducibility
 for (s in seeds) {
-  
-  continue_collecting <- 1  # Initialize the flag for data collection
+  continue_collecting <- 1  
   
   # Loop over the sample sizes
   for (i in n) {
-    # if (continue_collecting == 1) {
+    if (continue_collecting == 1) {
     # Generate data
     set.seed(s)
     x <- rnorm(n = i, mean = 0.000001, sd = 1) 
     set.seed(s+1)
     y <- rnorm(n = i, mean = 0, sd = 1)
-    
-    # Combine data into a single data frame
     data_df <- rbind(data_df, data.frame(group = c(rep("x", i), rep("y", i)), value = c(x, y)))
     
     # Perform the two-sample t-test
@@ -51,7 +48,7 @@ for (s in seeds) {
     # }
   }
 }
-# }
+}
 
 # Print the final results
 head(result_peeking)
@@ -65,7 +62,6 @@ cor_peeking <- data.frame()
 n_values <- unique(result_peeking$n)
 
 # Calculate correlations for unique combinations
-#NP: funktioniert nicht, da dimensionen 
 for (i in 1:(length(n_values) - 1)) {
   for (j in (i + 1):length(n_values)) {
     n_value1 <- n_values[i]
@@ -82,13 +78,7 @@ for (i in 1:(length(n_values) - 1)) {
   }
 }
 #
-view(cor_peeking)  
-
-
-#save prelimary results
-# write_csv(cor_peek, file = '20240712_cor_peek.csv')
-
-boxplot(cor_peek$correlation ~ cor_peek$n_value1)
-
+head(cor_peeking)  
+# save(result_peeking, file = "datasets/data_sim_rdf/result_peeking.RData")
 #example adjusted p-value
 adjusted_pm(zo = 5.248976, m = 5, rho = 0.2306337)

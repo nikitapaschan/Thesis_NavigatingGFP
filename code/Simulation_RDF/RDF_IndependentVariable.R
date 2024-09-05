@@ -94,26 +94,22 @@ for (n in n_values) {
 # Close the progress bar
 close(pb)
 
-# View the results
 tail(results_regIV)
 
 
-# Modify the naming convention by combining n, m, and correlation with underscores
+# Modify the naming convention
 results_regIV <- results_regIV %>%
   mutate(name = paste(n, m, correlation, sep = "_"))
 
-# Print the first few rows to verify the naming convention
 tail(results_regIV, 20)
 
-# Find the maximum beta within each iteration
+# MaxZ
 phacked_regIV <- results_regIV %>%
   group_by(iteration, n, m, correlation) %>%
   filter(abs(tvalue) == max(abs(tvalue))) %>%
   ungroup()
 
-# Print the head of phacked_regIV to verify the result
-view(phacked_regIV)
-
+head(phacked_regIV)
 
 
 # Function to calculate the correlation matrix for each parameter combination
@@ -127,7 +123,7 @@ calculate_correlations <- function(df) {
 }
 
 table(phacked_regIV$column_used)
-# view(results_regIV)
+
 # Split results_regIV by parameter combinations and calculate correlation matrices
 results_split <- split(results_regIV, list(results_regIV$n, results_regIV$m, results_regIV$correlation))
 

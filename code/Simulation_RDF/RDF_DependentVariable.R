@@ -1,15 +1,13 @@
 ######################################################
 # RDF Selective reporting of dependent variables
 #####################################################
-setwd('/Users/nikitapaschan/Thesis_NavigatingGFP/')
-
+# setwd('/Users/nikitapaschan/Thesis_NavigatingGFP/')
 
 # Function to generate correlated data
 generate_correlated_matrix <- function(n = 100, k = 3, r = 0, mu = 0) {
   mean_vector <- rep(mu, k)
   correlation_matrix <- matrix(r, nrow = k, ncol = k)
   diag(correlation_matrix) <- 1
-  
   correlated_matrix <- mvrnorm(n = n, mu = mean_vector, Sigma = correlation_matrix)
   return(correlated_matrix)
 }
@@ -25,7 +23,7 @@ perform_tests <- function(n = 100, k = 5, r = 0.5, mu = 0, seed = 123, iteration
   g1 <- sample(c(rep(0, n/2), rep(1, n/2)), n, replace = FALSE)
   data_testing <- as.data.frame(cbind(data_matrix, g1))
   
-  # Exclude the last column from the data frame for tests
+  # Exclude grouping variable for data considered in outlier handling
   data_test <- data_testing[, -ncol(data_testing)]
   
   # Create an empty data frame to store the results
@@ -60,32 +58,26 @@ perform_tests <- function(n = 100, k = 5, r = 0.5, mu = 0, seed = 123, iteration
 
 # Example usage
 set.seed(142)
-k_values <- c(3, 5, 10) #add one setting with 1000 to see extreme 
+k_values <- c(3, 5, 10) 
 r_values <- c(0, 0.3, 0.8)
 niter <- 10000
 
 param_combi_testing <- expand.grid(niter = 1:niter, k = k_values, r = r_values)
 param_combi_testing$seed <- sample(1:1000000, nrow(param_combi_testing), replace = FALSE)
 
-# Create a list to store results
+# Initialize
 all_results <- list()
 
 # Perform tests for each combination of parameters
-for (i in 1:nrow(param_combi_testing)) {
+result_testDV <- pblapply(1:nrow(param_combi_testing), function(i) {
   params <- param_combi_testing[i, ]
-  results <- perform_tests(n = 100, k = params$k, r = params$r, mu = 0, seed = params$seed, iteration = params$niter)
-  all_results[[i]] <- results
-}
-
-# Combine all results into a single data frame
-result_testDV <- bind_rows(all_results)
-
-# Print the final results
+  perform_tests(n = 100, k = params$k, r = params$r, mu = 0, seed = params$seed, iteration = params$niter)
+}, cl = detectCores() - 1)
+result_testDV <- bind_rows(result_testDV)
 head(result_testDV)
 
-```
+save(result_testDV, file = "datasets/data_sim_rdf/rdf_dependent_variable.RData")
 
-```{r}
 # Summarize the data to get the maximum absolute t_test for each parameter combination
 phacked_testDV <- result_testDV %>%
   group_by(iteration, n, k, r, seed) %>%
@@ -97,9 +89,7 @@ phacked_testDV <- result_testDV %>%
   select(c(iteration, n, k, r, seed, Variable, t_test, pvalue_ttest, sig_ttest_5p))
 
 head(phacked_testDV)
-```
 
-```{r}
 # Calculate correlations
 
 result_testDV <- as.data.table(result_testDV)
@@ -127,13 +117,12 @@ for (k_value in unique(result_testDV$k)) { #unique(result_testDV$k)
   }
 }
 
-# head the correlation results
-view(cor_testDV)
-# write_csv(cor_testDV, file = '20240709_cor_testDV.csv')
 
+head(cor_testDV)
+
+# Adjusted p-value function
 phacked_testDV$pm_minr <- NA
 phacked_testDV$pm_maxr <- NA
-
 
 # Iterate through the unique combinations of k and r
 for (k_value in unique(phacked_testDV$k)) {
@@ -156,7 +145,7 @@ for (k_value in unique(phacked_testDV$k)) {
              function(zo) adjusted_pm(zo, k_value, max_rho_testDV))
   }
 }
-view(phacked_testDV)
+head(phacked_testDV)
 
 
 phacked_testDV <- phacked_testDV %>%

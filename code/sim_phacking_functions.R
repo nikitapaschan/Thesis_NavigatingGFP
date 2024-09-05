@@ -1,20 +1,8 @@
 ### Simulation of p-hacking ###
-# Date: 11.05.2024
 
 ## save R info 
 # Rsession <- sessionInfo()
 # saveRDS(Rsession, file='Rsession.rds')
-
-
-## libraries
-library('MASS')
-library('dplyr')
-library('ggplot2')
-library('tidyverse')
-library('parallel')
-library('microbenchmark') #check speed of functions 
-library('data.table') # more flexible data structure
-library('mvtnorm')
 
 
 ## function for DGP of p-hacking 

@@ -28,7 +28,7 @@ qrp_transformation <- function(n, seed) {
       y_sqrt = sqrt(abs(y))
     )
   
-  load('/Users/nikitapaschan/Master-Thesis/20240808_np_qrp.RData')
+  load('20240808_np_qrp.RData')
   
   # Function to extract coefficients and p-values
   extract_coefs <- function(model) {
@@ -149,24 +149,19 @@ n <- 100
 set.seed(42)
 seeds_trans <- sample(1:1000000, niter, replace = FALSE)  # Different seed for each iteration
 
-
 results_trans <- do.call(rbind, pblapply(seeds_trans, function(seed) qrp_transformation(n, seed), cl = detectCores() - 1))
 
 
 # head the combined results
 head(results_trans)
 results_trans <- as.data.table(results_trans)
-# results_trans_shapiro <- results_trans[shapiro_flag==1]
 colnames(results_trans)
 
 # Find values of selective reporting 
-# Select the desired columns using data.table
 results_trans_betas <- results_trans[, .(tvalue_notrans, tvalue_logx, tvalue_logy, tvalue_logxy, 
                                          tvalue_recix, tvalue_reciy, tvalue_recixy, 
                                          tvalue_sqrtx, tvalue_sqrty, tvalue_sqrtxy)]
 
-
-# Column names 
 trans_names <- colnames(results_trans_betas)
 
 # Initialize
@@ -227,15 +222,15 @@ cor_matrix_trans <- plot_grid(cor_matrix_trans, textbox_cor_matrix_trans, ncol =
 
 cor_matrix_trans
 
-ggsave(cor_matrix_trans, 
-       file = '/Users/nikitapaschan/Master-Thesis/plots/cor_matrix/cor_matrix_trans.pdf', 
-       width = 10, height = 8, units = "in")
+# ggsave(cor_matrix_trans, 
+       # file = 'plots/cor_matrix/cor_matrix_trans.pdf', 
+       # width = 10, height = 8, units = "in")
 
 
 
-ggsave(cor_matrix_trans, 
-       file = '/Users/nikitapaschan/Master-Thesis/plots/cor_matrix/cor_matrix_trans.pdf', 
-       width = 10, height = 8, units = "in")
+# ggsave(cor_matrix_trans, 
+#        file = 'plots/cor_matrix/cor_matrix_trans.pdf', 
+#        width = 10, height = 8, units = "in")
 
 head(phacked_trans)
 
@@ -261,6 +256,6 @@ phacked_trans <- as.data.table(phacked_trans)
 head(phacked_trans)
 table(phacked_trans$test_name)/sum(table(phacked_trans$test_name))
 
-# save(results_trans, file = '/Users/nikitapaschan/Master-Thesis/20240902_np_rdf_transformation.RData')
-# load('/Users/nikitapaschan/Master-Thesis/20240902_np_rdf_transformation.RData')
+# save(results_trans, file = '20240902_np_rdf_transformation.RData')
+# load('20240902_np_rdf_transformation.RData')
 
